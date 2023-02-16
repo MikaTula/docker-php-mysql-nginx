@@ -1,9 +1,15 @@
 version: '2'
+
+# docker-compose up -d
+# docker exec -t -i nginx_ssl sh
+
 services:
     nginx:
-        image: nginx:latest
+        build: ./images/nginx
+        container_name: nginx_ssl
         ports:
-            - "80:80"
+            - "81:80"
+            - "8081:80"
             - "443:443"
         volumes:
             - ./hosts:/etc/nginx/conf.d
