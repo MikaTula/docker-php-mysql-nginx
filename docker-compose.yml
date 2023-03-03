@@ -19,11 +19,13 @@ services:
             - php
     php:
         build: ./images/php
+        container_name: mk_php
         links:
             - mysql
         volumes:
             - ./www:/var/www
     mysql:
+        container_name: mk_mysql
         image: mysql:8
         ports:
             - "3306:3306"
