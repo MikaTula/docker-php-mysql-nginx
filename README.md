@@ -1,17 +1,16 @@
 # docker-php-mysql-nginx
-fork of https://phptoday.ru/post-preview/gotovim-lokalnuyu-sredu-docker-dlya-razrabotki-na-php
-
 
 # Install:
+  Go to docker and run
+
   docker-compose up
   or
   docker-compose up -d
 
-# After instal
-  1. Run get-cert.sh
-     It makes docker-cert-to-trusted-root.crt
-     You need tetup it like Trusted Root Cert
-  
-  2. Add to C:\Windows\System32\drivers\etc\hosts 
+  Add to C:\Windows\System32\drivers\etc\hosts 
      127.0.0.1 hello-docker.loc
-  
+
+
+# phpmyadmin
+  Phpmyadmin works on http://hello-docker.loc:8081/
+

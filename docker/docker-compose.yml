@@ -1,0 +1,119 @@
+name: cm-docker
+
+services:
+  cm-gateway:
+    container_name: cm-gateway
+    build: ./images/nginx
+    restart: unless-stopped
+    depends_on:
+      - cm-clear-log
+    links:
+      - cm-api-server
+      - cm-database
+      - cm-clear-log
+    ports:
+        - "80:80"
+    volumes:
+      - ./images/nginx/hosts:/etc/nginx/conf.d
+      - ../logs/nginx:/var/log/nginx
+      - ../api-server:/var/www/api-server
+      - ../api-client:/var/www/api-client
+    networks:
+      - cm-network            
+
+  cm-api-server:
+    build:
+      context: ./images/api-server
+    restart: unless-stopped
+    container_name: cm-api-server
+    working_dir: /var/www/api-server
+    depends_on:
+      - cm-clear-log
+    ports:
+      - ":9000"
+    links:
+      - cm-database
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ../api-server:/var/www/api-server
+      - ../api-server:/var/www/api-server
+      - ../logs/api-server:/var/log/php
+    networks:
+      - cm-network      
+
+  cm-database:
+    image: mysql:8.0
+    restart: unless-stopped
+    container_name: cm-database
+    ports:
+      - "3306:3306"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=true
+      # - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_DATABASE=cm_api_server
+      - MYSQL_USER=cm_db_user
+      - MYSQL_PASSWORD=secret
+    volumes:
+      - db-mysql:/var/lib/mysql
+    networks:
+      - cm-network      
+      
+  cm-redis:
+    image: redis:7.2
+    restart: unless-stopped
+    container_name: cm-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis:/data
+    networks:
+      - cm-network      
+      
+  cm-mailhog:
+    image: mailhog/mailhog:latest
+    container_name: cm-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - cm-network  
+  
+  cm-clear-log:
+    build:
+      context: ./images/clear-logs
+    container_name: cm-clear-log
+    entrypoint: /var/www/entrypoint.sh
+    restart: "no"
+    volumes:
+      - ../logs/api-server:/var/log/php
+      - ../logs/nginx:/var/log/nginx
+      
+  cm-phpmyadmin:
+    image: phpmyadmin
+    restart: always
+    depends_on:
+      - cm-database
+    links:
+      - cm-database
+    ports:
+      - 8081:80
+    environment:
+      - PMA_ARBITRARY=1      
+      - PMA_HOST=cm-database
+      - PMA_USER=root
+      - UPLOAD_LIMIT=128M
+    networks:
+      - cm-network       
+
+volumes:
+  db-mysql:
+  redis:
+
+networks:
+  cm-network:
+    driver: bridge
+    name: cm-network
