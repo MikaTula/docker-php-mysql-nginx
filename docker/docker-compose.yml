@@ -71,6 +71,17 @@ services:
       - redis:/data
     networks:
       - cm-network      
+
+  cm-redis-commander:
+    image: rediscommander/redis-commander:latest
+    environment:
+      - REDIS_HOSTS=cm-redis
+    ports:
+      - "8082:8081"
+    depends_on:
+      - cm-redis
+    networks:
+      - cm-network  
       
   cm-mailhog:
     image: mailhog/mailhog:latest
