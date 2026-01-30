@@ -7,10 +7,12 @@ services:
     restart: unless-stopped
     depends_on:
       - cm-clear-log
+      - cm-scalar
     links:
       - cm-api-server
       - cm-database
       - cm-clear-log
+      - cm-scalar
     ports:
         - "80:80"
     volumes:
@@ -74,6 +76,8 @@ services:
 
   cm-redis-commander:
     image: rediscommander/redis-commander:latest
+    container_name: cm-redis-commander
+    restart: unless-stopped
     environment:
       - REDIS_HOSTS=cm-redis
     ports:
@@ -105,7 +109,8 @@ services:
       
   cm-phpmyadmin:
     image: phpmyadmin
-    restart: always
+    container_name: cm-phpmyadmin
+    restart: unless-stopped
     depends_on:
       - cm-database
     links:
@@ -119,6 +124,19 @@ services:
       - UPLOAD_LIMIT=128M
     networks:
       - cm-network       
+
+  cm-scalar:
+    image: scalarapi/api-reference:latest
+    container_name: cm-scalar
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../api-server/public:/docs:ro
+    environment:
+      - API_REFERENCE_CONFIG={"sources":[{"url":"http://api.music.local/openapi.yaml"}],"theme":"laravel","layout":"modern","showSidebar":true,"hideModels":false,"hideDownloadButton":false,"hideTestRequestButton":false,"hideSearch":false,"darkMode":false,"forceDarkModeState":"dark","hideDarkModeToggle":false,"searchHotKey":"k","servers":[{"url":"http://api.music.local/api","description":"API Server"}]}
+    networks:
+      - cm-network
 
 volumes:
   db-mysql:

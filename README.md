@@ -21,3 +21,14 @@
   
 # mailhog
   MailHog works on http://hello-docker.loc:8025/  
+
+# scalar
+	
+	docs make in hand mode. may be find some correct working tools in feature
+
+	http://api.music.local:8080/
+	
+	Put open api file to /api-server/public/openapi.yaml
+	
+	## scalar editor
+		https://docs.scalar.com/swagger-editor
