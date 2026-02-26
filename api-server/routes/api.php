@@ -10,8 +10,8 @@ use Illuminate\Support\Facades\Route;
 //})->middleware('auth:sanctum');
 
 Route::controller(RegisterController::class)->group(function(){
-    Route::post('register', 'register')->name('register');
-    Route::post('login', 'login')->name('login');
+    Route::post('custom-register', 'register')->name('custom-register');
+    Route::post('custom-login', 'login')->name('custom-login');
 });
 
 Route::middleware('auth:sanctum')->group( function () {

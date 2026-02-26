@@ -55,7 +55,7 @@ services:
     environment:
       - MYSQL_ALLOW_EMPTY_PASSWORD=true
       # - MYSQL_ROOT_PASSWORD=secret
-      - MYSQL_DATABASE=cm_api_server
+      - MYSQL_DATABASE=laravel
       - MYSQL_USER=cm_db_user
       - MYSQL_PASSWORD=secret
     volumes:
