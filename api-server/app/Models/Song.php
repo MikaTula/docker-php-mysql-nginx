@@ -3,29 +3,46 @@
 namespace App\Models;
 
 use Carbon\CarbonImmutable;
+use Database\Factories\SongFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasTimestamps;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id
  * @property string $name
- * @property int $user_id
+ * @property int $singer_id
  * @property int $year
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
+
+ * @property-read \App\Models\Singer|null $singer
+ * @method static \Database\Factories\SongFactory factory($count = null, $state = [])
  * @method static Builder<static>|Song newModelQuery()
  * @method static Builder<static>|Song newQuery()
+ * @method static Builder<static>|Song onlyTrashed()
  * @method static Builder<static>|Song query()
  * @method static Builder<static>|Song whereCreatedAt($value)
  * @method static Builder<static>|Song whereId($value)
  * @method static Builder<static>|Song whereName($value)
+ * @method static Builder<static>|Song whereSingerId($value)
  * @method static Builder<static>|Song whereUpdatedAt($value)
- * @method static Builder<static>|Song whereUserId($value)
  * @method static Builder<static>|Song whereYear($value)
+ * @method static Builder<static>|Song withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|Song withoutTrashed()
  * @mixin \Eloquent
  */
 class Song extends Model
 {
+        /// * @property-read \App\Models\Album|null $album
+
+    /** @use HasFactory<SongFactory> */
+    use HasFactory, HasTimestamps, SoftDeletes;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -33,7 +50,17 @@ class Song extends Model
      */
     protected $fillable = [
         'name',
-        'user_id',
         'year',
     ];
+
+    public function singer(): BelongsTo
+    {
+        return $this->belongsTo(Singer::class);
+    }
+
+    public function album(): BelongsToMany
+    {
+        return $this->belongsToMany(Album::class);
+    }
+
 }

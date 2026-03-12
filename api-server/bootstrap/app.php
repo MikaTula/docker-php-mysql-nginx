@@ -1,11 +1,15 @@
 <?php
 
+use App\Exceptions\ApiExceptionHandler;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Http\Request;
+
+$exceptionHandler = new ApiExceptionHandler;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -22,7 +26,8 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
-    })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        //
+    })->withExceptions(function (Exceptions $exceptions) use ($exceptionHandler) {
+        $exceptions->renderable(function (Throwable $e, Request $request) use ($exceptionHandler) {
+            return $exceptionHandler->handleException($e, $request);
+        });
     })->create();

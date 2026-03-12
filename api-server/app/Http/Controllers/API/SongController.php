@@ -66,7 +66,7 @@ class SongController extends BaseController
         }
 
         $song->name = $input['name'];
-        $song->user_id = $input['user_id'];
+        // $song->singer()_id = $input['singer_id'];
         $song->year = $input['year'];
         $song->save();
 
