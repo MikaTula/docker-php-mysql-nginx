@@ -2,20 +2,38 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Http\Requests\Common\PaginationRequest;
 use App\Http\Resources\SongResource;
+use App\Mappers\PaginationMapper;
+use App\Mappers\SongMapper;
 use App\Models\Song;
+use App\Services\SongService;
+use App\Services\SongServiceInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use JsonMapper_Exception;
 
 class SongController extends BaseController
 {
-    // Display a listing of the resource.
-    public function index(): JsonResponse
-    {
-        $songs = Song::all();
+    private SongService $songService;
 
-        return $this->sendResponse(SongResource::collection($songs), 'Songs retrieved successfully.');
+    public function __construct(SongServiceInterface $songService)
+    {
+        $this->songService = $songService;
+    }
+
+    /**
+     * @throws JsonMapper_Exception
+     */
+    public function index(PaginationRequest $request): JsonResponse
+    {
+        $songsPage = $this->songService->getList(PaginationMapper::mapFromRequest($request));
+        $songsPage->items = SongMapper::mapFromListDB($songsPage->items);
+        return $this->sendResponse(
+            $songsPage,
+            'Songs retrieved successfully.'
+        );
     }
 
     // Store a newly created resource in storage.

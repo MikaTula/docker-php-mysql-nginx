@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\SingerFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasTimestamps;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +21,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $deleted_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Song> $songs
  * @property-read int|null $songs_count
+ *
  * @method static \Database\Factories\SingerFactory factory($count = null, $state = [])
  * @method static Builder<static>|Singer newModelQuery()
  * @method static Builder<static>|Singer newQuery()
@@ -31,6 +33,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static Builder<static>|Singer whereId($value)
  * @method static Builder<static>|Singer whereLastName($value)
  * @method static Builder<static>|Singer whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 class Singer extends Model
@@ -44,5 +47,15 @@ class Singer extends Model
     public function songs(): HasMany
     {
         return $this->hasMany(Song::class);
+    }
+
+    /**
+     * @return Attribute
+     */
+    public function fullName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->first_name.' '.$this->last_name
+        );
     }
 }

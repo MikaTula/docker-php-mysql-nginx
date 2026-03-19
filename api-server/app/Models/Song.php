@@ -19,9 +19,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $year
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
-
- * @property-read \App\Models\Singer|null $singer
- * @method static \Database\Factories\SongFactory factory($count = null, $state = [])
+ * @property-read Singer|null $singer
+ *
+ * @method static SongFactory factory($count = null, $state = [])
  * @method static Builder<static>|Song newModelQuery()
  * @method static Builder<static>|Song newQuery()
  * @method static Builder<static>|Song onlyTrashed()
@@ -34,12 +34,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static Builder<static>|Song whereYear($value)
  * @method static Builder<static>|Song withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|Song withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class Song extends Model
 {
-        /// * @property-read \App\Models\Album|null $album
-
     /** @use HasFactory<SongFactory> */
     use HasFactory, HasTimestamps, SoftDeletes;
 
@@ -62,5 +61,4 @@ class Song extends Model
     {
         return $this->belongsToMany(Album::class);
     }
-
 }
