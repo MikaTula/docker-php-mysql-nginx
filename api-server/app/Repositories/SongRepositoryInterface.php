@@ -22,10 +22,13 @@ interface SongRepositoryInterface
         ?int $userId = null,
     ): iterable;
 
-
-    /**
-     * @param int|null $userId
-     * @return int
-     */
     public function getCount(?int $userId = null): int;
+
+    public function create(array $attributes): Song;
+
+    public function findOrFail(int $id): Song;
+
+    public function update(int $id, array $attributes): Song;
+
+    public function delete(int $id): void;
 }

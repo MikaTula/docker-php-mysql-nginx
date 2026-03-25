@@ -6,7 +6,6 @@ use App\Domain\Enums\SongSortByEnum;
 use App\Domain\Enums\SortOrderEnum;
 use App\Models\Song;
 
-
 class SongRepository implements SongRepositoryInterface
 {
     /**
@@ -20,18 +19,39 @@ class SongRepository implements SongRepositoryInterface
         ?int $userId = null
     ): iterable {
         return Song::query()
+            ->with('singer')
             ->take($size)
             ->skip(($page - 1) * $size)
             ->orderBy($sortBy->value, $sortOrder->value)
             ->get();
     }
 
-    /**
-     * @param int|null $userId
-     * @return int
-     */
     public function getCount(?int $userId = null): int
     {
         return Song::query()->count();
+    }
+
+    public function create(array $attributes): Song
+    {
+        return Song::query()->create($attributes);
+    }
+
+    public function findOrFail(int $id): Song
+    {
+        return Song::query()->findOrFail($id);
+    }
+
+    public function update(int $id, array $attributes): Song
+    {
+        $song = $this->findOrFail($id);
+        $song->fill($attributes);
+        $song->save();
+
+        return $song;
+    }
+
+    public function delete(int $id): void
+    {
+        $this->findOrFail($id)->delete();
     }
 }

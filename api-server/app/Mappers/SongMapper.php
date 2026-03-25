@@ -9,8 +9,6 @@ class SongMapper
 {
     /**
      * @return SongModel[]
-     *
-     * @throws JsonMapper_Exception
      */
     public static function mapFromListDB(iterable $songs): array
     {

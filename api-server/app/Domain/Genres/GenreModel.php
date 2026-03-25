@@ -1,20 +1,16 @@
 <?php
 
-namespace App\Domain\Songs;
+namespace App\Domain\Genres;
 
 use Carbon\CarbonImmutable;
 
-class SingerModel
+class GenreModel
 {
     public function __construct(
         public int $id,
-        public string $firstName,
-        public string $lastName,
-        public int $age,
+        public string $name,
+        public int $createdBy,
         public CarbonImmutable $createdAt,
         public ?CarbonImmutable $updatedAt
-    ) {
-    }
-
-
+    ) {}
 }
