@@ -16,5 +16,6 @@ class DatabaseSeeder extends Seeder
         $this->call(SingerSeeder::class);
         $this->call(AlbumSeeder::class);
         $this->call(SongSeeder::class);
+        $this->call(FileSeeder::class);
     }
 }

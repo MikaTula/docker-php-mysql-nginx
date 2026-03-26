@@ -13,8 +13,11 @@ class GenreSeeder extends Seeder
      */
     public function run(): void
     {
-        Genre::factory(10)->create([
-            'created_by' => User::query()->firstOrFail()->id,
-        ]);
+        User::query()->orderBy('id')->each(function (User $user): void {
+            Genre::factory()->create([
+                'name' => 'Genre '.$user->id,
+                'created_by' => $user->id,
+            ]);
+        });
     }
 }

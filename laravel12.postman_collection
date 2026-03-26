@@ -1,8 +1,8 @@
 {
   "info": {
-    "_postman_id": "1378a809-d35a-4437-bba2-97a08056d8bd",
-    "name": "hello docker laravel 12 Copy",
-    "description": "Коллекция для REST API (`routes/api.php`). Переменная `{{urlLara}}` — база с завершающим слэшем, например `http://api.music.local/`. После **login** или **register** токен Sanctum пишется в окружение как `sunctumToken` и подставляется в Bearer для защищённых запросов.\n\nПорядок: **register** или **login** → **user** → при необходимости **singers** (создать исполнителя) → **songs** (нужен `singer_id`). Списки требуют query: `page`, `size`, `sortBy`, `sortOrder`.",
+    "_postman_id": "3a1cd155-b139-405b-9889-649d717dbb0d",
+    "name": "hello docker laravel 12",
+    "description": "Коллекция для REST API (`routes/api.php`). Переменная `{{urlLara}}` — база адреса с завершающим слэшем, например `http://api.music.local/`.  \nПосле **login** или **register** токен Sanctum пишется в окружение как `sunctumToken` и подставляется в Bearer для защищённых запросов.\n\nПорядок: **register** или **login** → **user** → при необходимости **singers** (создать исполнителя) → **songs** (нужен `singer_id`) → **files** (multipart: поле `file`, опционально `description`). Списки требуют query: `page`, `size`, `sortBy`, `sortOrder`. Удаление песни полностью убирает привязанные файлы с диска, если файл не связан с другими песнями.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "2646637"
   },
@@ -332,6 +332,190 @@
                 {
                   "key": "id",
                   "value": "7"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Files",
+      "item": [
+        {
+          "name": "index (list + pagination)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{urlLara}}api/files?page=1&size=10&sortBy=created_at&sortOrder=desc",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "files"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "created_at",
+                  "description": "id | user_id | original_name | mime_type | size | created_at | updated_at"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "store (multipart)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "value": null
+                },
+                {
+                  "key": "description",
+                  "value": "optional description",
+                  "type": "text"
+                },
+                {
+                  "key": "song_ids[]",
+                  "value": "1",
+                  "type": "text",
+                  "description": "ID песни; можно добавить несколько полей song_ids[]"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{urlLara}}api/files",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "files"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "show",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{urlLara}}api/files/:id",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "files",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update (description + song_ids)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated text\",\n  \"song_ids\": [1]\n}"
+            },
+            "url": {
+              "raw": "{{urlLara}}api/files/:id",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "files",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "destroy",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{urlLara}}api/files/:id",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "files",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
                 }
               ]
             }

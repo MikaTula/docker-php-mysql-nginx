@@ -11,7 +11,10 @@ use App\Repositories\SongRepositoryInterface;
 
 readonly class SongService implements SongServiceInterface
 {
-    public function __construct(private SongRepositoryInterface $songRepository) {}
+    public function __construct(
+        private SongRepositoryInterface $songRepository,
+        private FileServiceInterface $fileService,
+    ) {}
 
     public function getList(PaginationInModel $paginationInModel, ?int $scopedToUserId = null): PaginationOutModel
     {
@@ -48,6 +51,7 @@ readonly class SongService implements SongServiceInterface
 
     public function delete(int $id): void
     {
+        $this->fileService->deleteLinkedFilesForSong($id);
         $this->songRepository->delete($id);
     }
 }

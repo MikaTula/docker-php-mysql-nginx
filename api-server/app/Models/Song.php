@@ -22,8 +22,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property CarbonImmutable|null $updated_at
  * @property-read User|null $creator
  * @property-read Singer|null $singer
+ * @property int|null $file_id
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Genre> $genres
  * @property-read int|null $genres_count
+ * @property-read \App\Models\File|null $file
  *
  * @method static SongFactory factory($count = null, $state = [])
  * @method static Builder<static>|Song newModelQuery()
@@ -56,6 +58,7 @@ class Song extends Model
         'singer_id',
         'year',
         'created_by',
+        'file_id',
     ];
 
     public function creator(): BelongsTo
@@ -76,5 +79,10 @@ class Song extends Model
     public function genres(): BelongsToMany
     {
         return $this->belongsToMany(Genre::class);
+    }
+
+    public function file(): BelongsTo
+    {
+        return $this->belongsTo(File::class);
     }
 }

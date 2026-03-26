@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\File as FileModel;
 use App\Models\Genre;
 use App\Models\Singer;
 use App\Models\Song;
+use App\Policies\FilePolicy;
 use App\Policies\GenrePolicy;
 use App\Policies\SingerPolicy;
 use App\Policies\SongPolicy;
@@ -54,6 +56,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Song::class, SongPolicy::class);
         Gate::policy(Genre::class, GenrePolicy::class);
         Gate::policy(Singer::class, SingerPolicy::class);
+        Gate::policy(FileModel::class, FilePolicy::class);
     }
 
     protected function configureDefaults(): void
