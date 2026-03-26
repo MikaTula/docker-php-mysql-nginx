@@ -13,16 +13,17 @@ readonly class SingerService implements SingerServiceInterface
 {
     public function __construct(private SingerRepositoryInterface $singerRepository) {}
 
-    public function getList(PaginationInModel $paginationInModel): PaginationOutModel
+    public function getList(PaginationInModel $paginationInModel, ?int $scopedToUserId = null): PaginationOutModel
     {
         $items = $this->singerRepository->getList(
             $paginationInModel->page,
             $paginationInModel->size,
             SingerSortByEnum::from($paginationInModel->sortBy),
-            SortOrderEnum::from($paginationInModel->sortOrder)
+            SortOrderEnum::from($paginationInModel->sortOrder),
+            $scopedToUserId,
         );
 
-        $count = $this->singerRepository->getCount();
+        $count = $this->singerRepository->getCount($scopedToUserId);
 
         return new PaginationOutModel($items, $paginationInModel->page, $paginationInModel->size, $count);
     }

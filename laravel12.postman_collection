@@ -1,0 +1,730 @@
+{
+  "info": {
+    "_postman_id": "1378a809-d35a-4437-bba2-97a08056d8bd",
+    "name": "hello docker laravel 12 Copy",
+    "description": "Коллекция для REST API (`routes/api.php`). Переменная `{{urlLara}}` — база с завершающим слэшем, например `http://api.music.local/`. После **login** или **register** токен Sanctum пишется в окружение как `sunctumToken` и подставляется в Bearer для защищённых запросов.\n\nПорядок: **register** или **login** → **user** → при необходимости **singers** (создать исполнителя) → **songs** (нужен `singer_id`). Списки требуют query: `page`, `size`, `sortBy`, `sortOrder`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "2646637"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"HTTP 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"success true\", function () {",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});",
+                  "",
+                  "if (jsonData.data && jsonData.data.token) {",
+                  "    pm.environment.set(\"sunctumToken\", jsonData.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "email",
+                  "value": "test@example.com",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "Password1",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{urlLara}}api/custom-login",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "custom-login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.token) {",
+                  "    pm.environment.set(\"sunctumToken\", jsonData.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "name",
+                  "value": "Demo User",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "demo@example.com",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "Password1",
+                  "type": "text"
+                },
+                {
+                  "key": "c_password",
+                  "value": "Password1",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{urlLara}}api/custom-register",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "custom-register"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "current user",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{urlLara}}api/user",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "user"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Songs",
+      "item": [
+        {
+          "name": "index (list + pagination)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{urlLara}}api/songs?page=1&size=10&sortBy=name&sortOrder=asc",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "songs"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "name",
+                  "description": "id | name | desc | singer_id | year | created_at | updated_at"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "asc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "store",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bohemian Rhapsody\",\n  \"singer_id\": {{singerId}},\n  \"year\": 1975\n}"
+            },
+            "url": {
+              "raw": "{{urlLara}}api/songs",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "songs"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "show",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{urlLara}}api/songs/:id",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "songs",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "7"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bohemian Rhapsody (remaster)\",\n  \"singer_id\": {{singerId}},\n  \"year\": 1975\n}"
+            },
+            "url": {
+              "raw": "{{urlLara}}api/songs/:id",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "songs",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "7"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "destroy",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{urlLara}}api/songs/:id",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "songs",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "7"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Genres",
+      "item": [
+        {
+          "name": "index (list + pagination)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{urlLara}}api/genres?page=1&size=10&sortBy=name&sortOrder=asc",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "genres"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "name",
+                  "description": "id | name | created_by | created_at | updated_at"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "asc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "store",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Rock\"\n}"
+            },
+            "url": {
+              "raw": "{{urlLara}}api/genres",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "genres"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "show",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{urlLara}}api/genres/:id",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "genres",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Classic Rock\"\n}"
+            },
+            "url": {
+              "raw": "{{urlLara}}api/genres/:id",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "genres",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "destroy",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{urlLara}}api/genres/:id",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "genres",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Singers",
+      "item": [
+        {
+          "name": "index (list + pagination)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{urlLara}}api/singers?page=1&size=10&sortBy=first_name&sortOrder=asc",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "singers"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "first_name",
+                  "description": "id | first_name | last_name | age | created_by | created_at | updated_at"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "asc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "store",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Freddie\",\n  \"last_name\": \"Mercury\",\n  \"age\": 45\n}"
+            },
+            "url": {
+              "raw": "{{urlLara}}api/singers",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "singers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "show",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{urlLara}}api/singers/:id",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "singers",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Freddie\",\n  \"last_name\": \"Mercury\",\n  \"age\": 46\n}"
+            },
+            "url": {
+              "raw": "{{urlLara}}api/singers/:id",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "singers",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "destroy",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{urlLara}}api/singers/:id",
+              "host": [
+                "{{urlLara}}api"
+              ],
+              "path": [
+                "singers",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{sunctumToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "urlLara",
+      "value": "http://api.music.local/"
+    },
+    {
+      "key": "singerId",
+      "value": "1"
+    }
+  ]
+}

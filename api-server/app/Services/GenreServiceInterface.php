@@ -10,7 +10,7 @@ use Illuminate\Container\Attributes\Bind;
 #[Bind(GenreService::class)]
 interface GenreServiceInterface
 {
-    public function getList(PaginationInModel $paginationInModel): PaginationOutModel;
+    public function getList(PaginationInModel $paginationInModel, ?int $scopedToUserId = null): PaginationOutModel;
 
     public function create(array $attributes, int $createdBy): Genre;
 

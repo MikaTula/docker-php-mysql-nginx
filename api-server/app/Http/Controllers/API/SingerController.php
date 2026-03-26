@@ -5,9 +5,9 @@ namespace App\Http\Controllers\API;
 use App\Http\Requests\Singers\SingerIndexRequest;
 use App\Http\Requests\Singers\SingerStoreRequest;
 use App\Http\Requests\Singers\SingerUpdateRequest;
-use App\Http\Resources\SingerResource;
 use App\Mappers\PaginationMapper;
 use App\Mappers\SingerMapper;
+use App\Models\Singer;
 use App\Services\SingerServiceInterface;
 use Illuminate\Http\JsonResponse;
 
@@ -17,7 +17,10 @@ class SingerController extends BaseController
 
     public function index(SingerIndexRequest $request): JsonResponse
     {
-        $page = $this->singerService->getList(PaginationMapper::mapFromValidated($request->validated()));
+        $page = $this->singerService->getList(
+            PaginationMapper::mapFromValidated($request->validated()),
+            $this->listScopeUserId($request->user()),
+        );
         $page->items = SingerMapper::mapFromListDB($page->items);
 
         return $this->sendResponse($page, 'Singers retrieved successfully.');
@@ -27,26 +30,24 @@ class SingerController extends BaseController
     {
         $singer = $this->singerService->create($request->validated(), $request->user()->id);
 
-        return $this->sendResponse(new SingerResource($singer), 'Singer created successfully.');
+        return $this->sendResponse(SingerMapper::mapFromDb($singer), 'Singer created successfully.');
     }
 
-    public function show($singer): JsonResponse
+    public function show(Singer $singer): JsonResponse
     {
-        $singer = $this->singerService->findOrFail((int) $singer);
-
-        return $this->sendResponse(new SingerResource($singer), 'Singer retrieved successfully.');
+        return $this->sendResponse(SingerMapper::mapFromDb($singer), 'Singer retrieved successfully.');
     }
 
-    public function update(SingerUpdateRequest $request, $singer): JsonResponse
+    public function update(SingerUpdateRequest $request, Singer $singer): JsonResponse
     {
-        $singer = $this->singerService->update((int) $singer, $request->validated());
+        $updated = $this->singerService->update((int) $singer->id, $request->validated());
 
-        return $this->sendResponse(new SingerResource($singer), 'Singer updated successfully.');
+        return $this->sendResponse(SingerMapper::mapFromDb($updated), 'Singer updated successfully.');
     }
 
-    public function destroy($singer): JsonResponse
+    public function destroy(Singer $singer): JsonResponse
     {
-        $this->singerService->delete((int) $singer);
+        $this->singerService->delete((int) $singer->id);
 
         return $this->sendResponse([], 'Singer deleted successfully.');
     }

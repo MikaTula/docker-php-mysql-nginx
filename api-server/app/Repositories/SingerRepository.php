@@ -13,17 +13,28 @@ class SingerRepository implements SingerRepositoryInterface
         int $size,
         SingerSortByEnum $sortBy,
         SortOrderEnum $sortOrder,
+        ?int $userId = null,
     ): iterable {
-        return Singer::query()
+        $query = Singer::query();
+        if ($userId !== null) {
+            $query->where('created_by', $userId);
+        }
+
+        return $query
             ->take($size)
             ->skip(($page - 1) * $size)
             ->orderBy($sortBy->value, $sortOrder->value)
             ->get();
     }
 
-    public function getCount(): int
+    public function getCount(?int $userId = null): int
     {
-        return Singer::query()->count();
+        $query = Singer::query();
+        if ($userId !== null) {
+            $query->where('created_by', $userId);
+        }
+
+        return $query->count();
     }
 
     public function create(array $attributes): Singer

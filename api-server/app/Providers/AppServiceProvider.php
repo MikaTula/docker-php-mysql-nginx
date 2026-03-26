@@ -2,12 +2,19 @@
 
 namespace App\Providers;
 
+use App\Models\Genre;
+use App\Models\Singer;
+use App\Models\Song;
+use App\Policies\GenrePolicy;
+use App\Policies\SingerPolicy;
+use App\Policies\SongPolicy;
 use App\Services\SongService;
 use App\Services\SongServiceInterface;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -43,6 +50,10 @@ class AppServiceProvider extends ServiceProvider
                 );
             });
         }
+
+        Gate::policy(Song::class, SongPolicy::class);
+        Gate::policy(Genre::class, GenrePolicy::class);
+        Gate::policy(Singer::class, SingerPolicy::class);
     }
 
     protected function configureDefaults(): void

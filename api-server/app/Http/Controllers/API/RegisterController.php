@@ -30,9 +30,9 @@ class RegisterController extends BaseController
     {
 
         $validator = Validator::make($request->all(), [
-            'name'       => 'required',
-            'email'      => 'required|email',
-            'password'   => 'required',
+            'name' => 'required',
+            'email' => 'required|email',
+            'password' => 'required',
             'c_password' => 'required|same:password',
         ]);
 
@@ -40,7 +40,7 @@ class RegisterController extends BaseController
             return $this->sendError('Validation Error.', $validator->errors());
         }
 
-        $input = $request->all();
+        $input = $request->only(['name', 'email', 'password']);
         $input['password'] = bcrypt($input['password']);
         $user = User::create($input);
         $success['token'] = $user->createToken('MyApp')->plainTextToken;
