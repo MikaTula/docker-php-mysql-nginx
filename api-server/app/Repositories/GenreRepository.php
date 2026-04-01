@@ -13,17 +13,28 @@ class GenreRepository implements GenreRepositoryInterface
         int $size,
         GenreSortByEnum $sortBy,
         SortOrderEnum $sortOrder,
+        ?int $userId = null,
     ): iterable {
-        return Genre::query()
+        $query = Genre::query();
+        if ($userId !== null) {
+            $query->where('created_by', $userId);
+        }
+
+        return $query
             ->take($size)
             ->skip(($page - 1) * $size)
             ->orderBy($sortBy->value, $sortOrder->value)
             ->get();
     }
 
-    public function getCount(): int
+    public function getCount(?int $userId = null): int
     {
-        return Genre::query()->count();
+        $query = Genre::query();
+        if ($userId !== null) {
+            $query->where('created_by', $userId);
+        }
+
+        return $query->count();
     }
 
     public function create(array $attributes): Genre

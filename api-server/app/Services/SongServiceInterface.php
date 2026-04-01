@@ -7,7 +7,7 @@ use App\Domain\Pagination\PaginationOutModel;
 
 interface SongServiceInterface
 {
-    public function getList(PaginationInModel $paginationInModel): PaginationOutModel;
+    public function getList(PaginationInModel $paginationInModel, ?int $scopedToUserId = null): PaginationOutModel;
 
     public function create(array $attributes, int $createdBy): \App\Models\Song;
 

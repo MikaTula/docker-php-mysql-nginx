@@ -13,16 +13,17 @@ readonly class GenreService implements GenreServiceInterface
 {
     public function __construct(private GenreRepositoryInterface $genreRepository) {}
 
-    public function getList(PaginationInModel $paginationInModel): PaginationOutModel
+    public function getList(PaginationInModel $paginationInModel, ?int $scopedToUserId = null): PaginationOutModel
     {
         $items = $this->genreRepository->getList(
             $paginationInModel->page,
             $paginationInModel->size,
             GenreSortByEnum::from($paginationInModel->sortBy),
-            SortOrderEnum::from($paginationInModel->sortOrder)
+            SortOrderEnum::from($paginationInModel->sortOrder),
+            $scopedToUserId,
         );
 
-        $count = $this->genreRepository->getCount();
+        $count = $this->genreRepository->getCount($scopedToUserId);
 
         return new PaginationOutModel($items, $paginationInModel->page, $paginationInModel->size, $count);
     }

@@ -18,8 +18,12 @@ class SongRepository implements SongRepositoryInterface
         SortOrderEnum $sortOrder,
         ?int $userId = null
     ): iterable {
-        return Song::query()
-            ->with('singer')
+        $query = Song::query()->with('singer');
+        if ($userId !== null) {
+            $query->where('created_by', $userId);
+        }
+
+        return $query
             ->take($size)
             ->skip(($page - 1) * $size)
             ->orderBy($sortBy->value, $sortOrder->value)
@@ -28,7 +32,12 @@ class SongRepository implements SongRepositoryInterface
 
     public function getCount(?int $userId = null): int
     {
-        return Song::query()->count();
+        $query = Song::query();
+        if ($userId !== null) {
+            $query->where('created_by', $userId);
+        }
+
+        return $query->count();
     }
 
     public function create(array $attributes): Song

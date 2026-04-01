@@ -3,11 +3,14 @@
 namespace App\Exceptions;
 
 use App\Traits\ApiResponses;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Throwable;
 
 class ApiExceptionHandler
@@ -26,6 +29,18 @@ class ApiExceptionHandler
 
         if ($e instanceof AuthenticationException) {
             return $this->handleAuthenticationException($e);
+        }
+
+        if ($e instanceof AuthorizationException) {
+            return $this->handleAuthorizationException($e);
+        }
+
+        if ($e instanceof AccessDeniedHttpException) {
+            return $this->handleAccessDeniedException($e);
+        }
+
+        if ($e instanceof ThrottleRequestsException) {
+            return $this->handleThrottleRequestsException($e);
         }
 
         return $this->handleGenericException($e);
@@ -79,5 +94,38 @@ class ApiExceptionHandler
                 'source' => 'Line: '.$e->getLine().' in '.$e->getFile(),
             ],
         ], 500);
+    }
+
+    protected function handleAuthorizationException(AuthorizationException $e): JsonResponse
+    {
+        return $this->error([
+            [
+                'status' => 403,
+                'message' => 'Forbidden',
+                'source' => $e->getMessage(),
+            ],
+        ], 403);
+    }
+
+    protected function handleAccessDeniedException(AccessDeniedHttpException $e): JsonResponse
+    {
+        return $this->error([
+            [
+                'status' => 403,
+                'message' => 'Forbidden',
+                'source' => $e->getMessage(),
+            ],
+        ], 403);
+    }
+
+    protected function handleThrottleRequestsException(ThrottleRequestsException $e): JsonResponse
+    {
+        return $this->error([
+            [
+                'status' => 429,
+                'message' => $e->getMessage() ?: 'Too Many Attempts.',
+                'source' => '',
+            ],
+        ], 429);
     }
 }

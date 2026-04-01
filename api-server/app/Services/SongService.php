@@ -13,16 +13,17 @@ readonly class SongService implements SongServiceInterface
 {
     public function __construct(private SongRepositoryInterface $songRepository) {}
 
-    public function getList(PaginationInModel $paginationInModel): PaginationOutModel
+    public function getList(PaginationInModel $paginationInModel, ?int $scopedToUserId = null): PaginationOutModel
     {
         $songs = $this->songRepository->getList(
             $paginationInModel->page,
             $paginationInModel->size,
             SongSortByEnum::from($paginationInModel->sortBy),
-            SortOrderEnum::from($paginationInModel->sortOrder)
+            SortOrderEnum::from($paginationInModel->sortOrder),
+            $scopedToUserId,
         );
 
-        $count = $this->songRepository->getCount();
+        $count = $this->songRepository->getCount($scopedToUserId);
 
         return new PaginationOutModel($songs, $paginationInModel->page, $paginationInModel->size, $count);
     }

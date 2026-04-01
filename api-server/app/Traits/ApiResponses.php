@@ -31,7 +31,7 @@ trait ApiResponses
 
         return response()->json([
             'errors' => $errors,
-        ]);
+        ], $statusCode ?? 500);
     }
 
     protected function notAuthorized($message): JsonResponse

@@ -28,6 +28,13 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })->withExceptions(function (Exceptions $exceptions) use ($exceptionHandler) {
         $exceptions->renderable(function (Throwable $e, Request $request) use ($exceptionHandler) {
+            $useApiJsonHandler = $request->is('api/*')
+                || ($request->expectsJson() && ! $request->header('X-Inertia'));
+
+            if (! $useApiJsonHandler) {
+                return null;
+            }
+
             return $exceptionHandler->handleException($e, $request);
         });
     })->create();

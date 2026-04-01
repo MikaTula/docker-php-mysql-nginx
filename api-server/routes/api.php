@@ -7,10 +7,6 @@ use App\Http\Controllers\API\SongController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// Route::get('/user', function (Request $request) {
-//    return $request->user();
-// })->middleware('auth:sanctum');
-
 Route::controller(RegisterController::class)->group(function () {
     Route::post('custom-register', 'register')->name('custom-register');
     Route::post('custom-login', 'login')->name('custom-login');
@@ -21,7 +17,36 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     })->name('user');
 
-    Route::apiResource('songs', SongController::class);
-    Route::apiResource('genres', GenreController::class);
-    Route::apiResource('singers', SingerController::class);
+    Route::apiResource('songs', SongController::class)->only(['index', 'store']);
+    Route::get('songs/{song}', [SongController::class, 'show'])
+        ->middleware('can:view,song')
+        ->name('songs.show');
+    Route::match(['put', 'patch'], 'songs/{song}', [SongController::class, 'update'])
+        ->middleware('can:update,song')
+        ->name('songs.update');
+    Route::delete('songs/{song}', [SongController::class, 'destroy'])
+        ->middleware('can:delete,song')
+        ->name('songs.destroy');
+
+    Route::apiResource('genres', GenreController::class)->only(['index', 'store']);
+    Route::get('genres/{genre}', [GenreController::class, 'show'])
+        ->middleware('can:view,genre')
+        ->name('genres.show');
+    Route::match(['put', 'patch'], 'genres/{genre}', [GenreController::class, 'update'])
+        ->middleware('can:update,genre')
+        ->name('genres.update');
+    Route::delete('genres/{genre}', [GenreController::class, 'destroy'])
+        ->middleware('can:delete,genre')
+        ->name('genres.destroy');
+
+    Route::apiResource('singers', SingerController::class)->only(['index', 'store']);
+    Route::get('singers/{singer}', [SingerController::class, 'show'])
+        ->middleware('can:view,singer')
+        ->name('singers.show');
+    Route::match(['put', 'patch'], 'singers/{singer}', [SingerController::class, 'update'])
+        ->middleware('can:update,singer')
+        ->name('singers.update');
+    Route::delete('singers/{singer}', [SingerController::class, 'destroy'])
+        ->middleware('can:delete,singer')
+        ->name('singers.destroy');
 });

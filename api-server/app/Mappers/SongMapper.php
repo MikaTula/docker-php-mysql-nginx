@@ -3,7 +3,7 @@
 namespace App\Mappers;
 
 use App\Domain\Songs\SongModel;
-use JsonMapper_Exception;
+use App\Models\Song;
 
 class SongMapper
 {
@@ -25,5 +25,17 @@ class SongMapper
         }
 
         return $res;
+    }
+
+    public static function mapFromDb(Song $song): SongModel
+    {
+        return new SongModel(
+            $song->id,
+            $song->name,
+            SingerMapper::mapFromDbToIdName($song->singer),
+            $song->year,
+            $song->created_at,
+            $song->updated_at
+        );
     }
 }

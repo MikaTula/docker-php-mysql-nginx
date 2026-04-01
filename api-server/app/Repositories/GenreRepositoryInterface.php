@@ -18,9 +18,10 @@ interface GenreRepositoryInterface
         int $size,
         GenreSortByEnum $sortBy,
         SortOrderEnum $sortOrder,
+        ?int $userId = null,
     ): iterable;
 
-    public function getCount(): int;
+    public function getCount(?int $userId = null): int;
 
     public function create(array $attributes): Genre;
 
