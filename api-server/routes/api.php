@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\FileController;
 use App\Http\Controllers\API\GenreController;
 use App\Http\Controllers\API\RegisterController;
 use App\Http\Controllers\API\SingerController;
@@ -49,4 +50,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('singers/{singer}', [SingerController::class, 'destroy'])
         ->middleware('can:delete,singer')
         ->name('singers.destroy');
+
+    Route::apiResource('files', FileController::class)->only(['index', 'store']);
+    Route::get('files/{file}', [FileController::class, 'show'])
+        ->middleware('can:view,file')
+        ->name('files.show');
+    Route::match(['put', 'patch'], 'files/{file}', [FileController::class, 'update'])
+        ->middleware('can:update,file')
+        ->name('files.update');
+    Route::delete('files/{file}', [FileController::class, 'destroy'])
+        ->middleware('can:delete,file')
+        ->name('files.destroy');
 });

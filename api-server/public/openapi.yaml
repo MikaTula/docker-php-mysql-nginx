@@ -5,7 +5,8 @@ info:
     API documentation for Laravel application with authentication and songs management.
 
     **Соответствие коду (`routes/api.php`, контроллеры, FormRequest):**
-    - Списки с пагинацией (`GET /songs`, `GET /genres`, `GET /singers`) **обязаны** передавать query-параметры: `page`, `size`, `sortBy`, `sortOrder` (см. `PaginationRequest` / `*IndexRequest`). При отсутствии или неверных значениях Laravel возвращает **422** (глобальный `ApiExceptionHandler`).
+    - Списки с пагинацией (`GET /songs`, `GET /genres`, `GET /singers`, `GET /files`) **обязаны** передавать query-параметры: `page`, `size`, `sortBy`, `sortOrder` (см. `PaginationRequest` / `*IndexRequest`). При отсутствии или неверных значениях Laravel возвращает **422** (глобальный `ApiExceptionHandler`).
+    - Файлы (`POST /files`, `GET/PUT/PATCH/DELETE /files/{file}`): хранение на диске `local` (`storage/app/private`), связь с песней **1:1** — в таблице `songs` хранится `file_id`. Загрузить может любой аутентифицированный пользователь; изменить описание, привязку к песне и удалить запись может только владелец (`user_id`). При удалении песни привязанный файл удаляется с диска и из БД.
     - `GET /user` реализован замыканием в маршрутах и возвращает **сырой JSON пользователя** (модель `User`), **без** обёртки `success` / `data` / `message` из `BaseController`.
     - `POST /custom-register` и неуспешный `POST /custom-login` в `RegisterController` отвечают через `BaseController::sendError` (по умолчанию HTTP **404** для ошибок валидации и неверных учётных данных), а не через формат 422 глобального обработчика.
   version: 1.0.0
@@ -25,6 +26,8 @@ tags:
     description: Music genres
   - name: Singers
     description: Singers (artists)
+  - name: Files
+    description: Uploaded files (local storage), linked to songs
 
 paths:
   /custom-register:
@@ -463,7 +466,8 @@ paths:
       tags:
         - Songs
       summary: Delete a song
-      description: Delete a song by its ID
+      description: |
+        Удаление песни (soft delete). Если у песни был `file_id`, файл удаляется с диска и из таблицы `files`.
       operationId: deleteSong
       security:
         - bearerAuth: []
@@ -492,6 +496,210 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiValidationErrorResponse'
+
+  /files:
+    get:
+      tags:
+        - Files
+      summary: List files
+      description: |
+        Пагинированный список. Обязательные query-параметры — `FileIndexRequest` (`FileSortByEnum`).
+        Обычный пользователь видит только свои файлы; администратор — все (`listScopeUserId`).
+      operationId: listFiles
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PaginationPage'
+        - $ref: '#/components/parameters/PaginationSize'
+        - $ref: '#/components/parameters/FileSortByQuery'
+        - $ref: '#/components/parameters/SortOrderQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '422':
+          description: Validation error (query parameters)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
+    post:
+      tags:
+        - Files
+      summary: Upload a file
+      description: |
+        `multipart/form-data`: поле `file` обязательно; `description` и `song_id` (одна песня) опциональны.
+        Максимальный размер файла в коде — 10240 KiB (`FileStoreRequest`).
+      operationId: uploadFile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                description:
+                  type: string
+                  nullable: true
+                song_id:
+                  type: integer
+                  nullable: true
+      responses:
+        '200':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
+
+  /files/{file}:
+    get:
+      tags:
+        - Files
+      summary: Get file metadata
+      description: Доступно любому аутентифицированному пользователю (`FilePolicy::view`).
+      operationId: getFile
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: file
+          in: path
+          required: true
+          description: File ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized
+    put:
+      tags:
+        - Files
+      summary: Update file metadata
+      description: |
+        JSON: `description` и/или `song_id` (одна песня или `null` для отвязки).
+        Только владелец файла.
+      operationId: updateFile
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: file
+          in: path
+          required: true
+          description: File ID
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                  nullable: true
+                song_id:
+                  type: integer
+                  nullable: true
+      responses:
+        '200':
+          description: OK
+        '422':
+          description: Validation error
+        '403':
+          description: Forbidden (not owner)
+        '401':
+          description: Unauthorized
+    patch:
+      tags:
+        - Files
+      summary: Update file metadata (PATCH)
+      operationId: patchFile
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: file
+          in: path
+          required: true
+          description: File ID
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                  nullable: true
+                song_id:
+                  type: integer
+                  nullable: true
+      responses:
+        '200':
+          description: OK
+        '422':
+          description: Validation error
+        '403':
+          description: Forbidden (not owner)
+        '401':
+          description: Unauthorized
+    delete:
+      tags:
+        - Files
+      summary: Delete file
+      description: Удаление записи и физического файла. Только владелец.
+      operationId: deleteFile
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: file
+          in: path
+          required: true
+          description: File ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+        '403':
+          description: Forbidden (not owner)
+        '401':
+          description: Unauthorized
 
   /genres:
     get:
@@ -816,6 +1024,14 @@ components:
       schema:
         type: string
         enum: [id, first_name, last_name, age, created_by, created_at, updated_at]
+    FileSortByQuery:
+      name: sortBy
+      in: query
+      required: true
+      description: Колонка сортировки (`FileSortByEnum`)
+      schema:
+        type: string
+        enum: [id, user_id, original_name, mime_type, size, created_at, updated_at]
 
   securitySchemes:
     bearerAuth:

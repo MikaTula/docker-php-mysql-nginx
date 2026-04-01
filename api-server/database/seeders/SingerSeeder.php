@@ -10,8 +10,12 @@ class SingerSeeder extends Seeder
 {
     public function run(): void
     {
-        Singer::factory(10)->create([
-            'created_by' => User::query()->firstOrFail()->id,
-        ]);
+        User::query()->orderBy('id')->each(function (User $user): void {
+            Singer::factory()->create([
+                'first_name' => 'Singer',
+                'last_name' => 'User'.$user->id,
+                'created_by' => $user->id,
+            ]);
+        });
     }
 }
