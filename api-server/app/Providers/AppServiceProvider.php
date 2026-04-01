@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\SongService;
+use App\Services\SongServiceInterface;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +18,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-
+        $this->app->bind(SongServiceInterface::class, SongService::class);
     }
 
     /**

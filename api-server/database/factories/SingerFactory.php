@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Singer;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -21,6 +22,7 @@ class SingerFactory extends Factory
             'first_name' => fake()->firstName(),
             'last_name' => fake()->lastName(),
             'age' => fake()->numberBetween(10, 90),
+            'created_by' => User::factory(),
         ];
     }
 }

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('title');
             $table->integer('year')->nullable();
             $table->integer('singer_id')->nullable()->unsigned()->index();
+            $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
             $table->softDeletes();
         });

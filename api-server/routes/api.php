@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\API\GenreController;
 use App\Http\Controllers\API\RegisterController;
+use App\Http\Controllers\API\SingerController;
 use App\Http\Controllers\API\SongController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -15,8 +17,11 @@ Route::controller(RegisterController::class)->group(function () {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::resource('songs', SongController::class);
     Route::get('user', function (Request $request) {
         return $request->user();
     })->name('user');
+
+    Route::apiResource('songs', SongController::class);
+    Route::apiResource('genres', GenreController::class);
+    Route::apiResource('singers', SingerController::class);
 });

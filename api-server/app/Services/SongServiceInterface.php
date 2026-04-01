@@ -4,14 +4,16 @@ namespace App\Services;
 
 use App\Domain\Pagination\PaginationInModel;
 use App\Domain\Pagination\PaginationOutModel;
-use Illuminate\Container\Attributes\Bind;
 
-#[Bind(SongService::class)]
 interface SongServiceInterface
 {
-    /**
-     * @param PaginationInModel $paginationInModel
-     * @return PaginationOutModel
-     */
     public function getList(PaginationInModel $paginationInModel): PaginationOutModel;
+
+    public function create(array $attributes, int $createdBy): \App\Models\Song;
+
+    public function findOrFail(int $id): \App\Models\Song;
+
+    public function update(int $id, array $attributes): \App\Models\Song;
+
+    public function delete(int $id): void;
 }

@@ -2,28 +2,23 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Song;
+use App\Models\Singer;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class SongResource extends JsonResource
+class SingerResource extends JsonResource
 {
     /**
-     * Transform the resource into an array.
-     *
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
     {
-
-        /** @var Song $this */
+        /** @var Singer $this */
         return [
             'id' => $this->id,
-            'name' => $this->name,
-            'singer_id' => $this->singer_id,
-            'singer' => $this->singer,
-            'album' => $this->album,
-            'year' => $this->year,
+            'first_name' => $this->first_name,
+            'last_name' => $this->last_name,
+            'age' => $this->age,
             'created_by' => $this->created_by,
             'created_at' => $this->created_at?->format('d/m/Y'),
             'updated_at' => $this->updated_at?->format('d/m/Y'),

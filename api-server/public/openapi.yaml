@@ -1,7 +1,13 @@
 openapi: 3.1.0
 info:
   title: Laravel API Documentation
-  description: API documentation for Laravel application with authentication and songs management
+  description: |
+    API documentation for Laravel application with authentication and songs management.
+
+    **Соответствие коду (`routes/api.php`, контроллеры, FormRequest):**
+    - Списки с пагинацией (`GET /songs`, `GET /genres`, `GET /singers`) **обязаны** передавать query-параметры: `page`, `size`, `sortBy`, `sortOrder` (см. `PaginationRequest` / `*IndexRequest`). При отсутствии или неверных значениях Laravel возвращает **422** (глобальный `ApiExceptionHandler`).
+    - `GET /user` реализован замыканием в маршрутах и возвращает **сырой JSON пользователя** (модель `User`), **без** обёртки `success` / `data` / `message` из `BaseController`.
+    - `POST /custom-register` и неуспешный `POST /custom-login` в `RegisterController` отвечают через `BaseController::sendError` (по умолчанию HTTP **404** для ошибок валидации и неверных учётных данных), а не через формат 422 глобального обработчика.
   version: 1.0.0
 
 servers:
@@ -15,15 +21,19 @@ tags:
     description: User management endpoints
   - name: Songs
     description: Songs management endpoints
+  - name: Genres
+    description: Music genres
+  - name: Singers
+    description: Singers (artists)
 
 paths:
-  /register:
+  /custom-register:
     post:
       tags:
         - Authentication
       summary: Register a new user
       description: Create a new user account and receive an authentication token
-      operationId: register
+      operationId: customRegister
       requestBody:
         required: true
         content:
@@ -68,12 +78,13 @@ paths:
                   token: "1|abcdefghijklmnopqrstuvwxyz1234567890"
                   name: "John Doe"
                 message: "User register successfully."
-        '422':
-          description: Validation error
+        '404':
+          description: |
+            Ошибка валидации: `RegisterController` вызывает `sendError` с кодом по умолчанию **404** (не 422).
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/BaseControllerErrorResponse'
               example:
                 success: false
                 message: "Validation Error."
@@ -81,13 +92,13 @@ paths:
                   email: ["The email field is required."]
                   password: ["The password field is required."]
 
-  /login:
+  /custom-login:
     post:
       tags:
         - Authentication
       summary: Login user
       description: Authenticate user and receive an authentication token
-      operationId: login
+      operationId: customLogin
       requestBody:
         required: true
         content:
@@ -102,7 +113,7 @@ paths:
                   type: string
                   format: email
                   description: User's email address
-                  example: "test@mail.test"
+                  example: "test@example.com"
                 password:
                   type: string
                   format: password
@@ -121,12 +132,13 @@ paths:
                   token: "1|abcdefghijklmnopqrstuvwxyz1234567890"
                   name: "John Doe"
                 message: "User login successfully."
-        '401':
-          description: Unauthorized
+        '404':
+          description: |
+            Неверные учётные данные: `sendError` с кодом по умолчанию **404** (не 401).
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/BaseControllerErrorResponse'
               example:
                 success: false
                 message: "Unauthorised."
@@ -138,54 +150,42 @@ paths:
       tags:
         - User
       summary: Get current user
-      description: Get the authenticated user's information
+      description: |
+        Возвращает **сырую** модель `User` (JSON), без обёртки `success`/`data`/`message`.
+        Скрытые поля: `password`, `remember_token`, 2FA-секреты (см. `User::$hidden`).
       operationId: getUser
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: User information retrieved successfully
+          description: User model (JSON)
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                    example: 1
-                  name:
-                    type: string
-                    example: "John Doe"
-                  email:
-                    type: string
-                    format: email
-                    example: "john.doe@example.com"
-                  email_verified_at:
-                    type: string
-                    format: date-time
-                    nullable: true
-                  created_at:
-                    type: string
-                    format: date-time
-                  updated_at:
-                    type: string
-                    format: date-time
+                $ref: '#/components/schemas/UserModelResponse'
         '401':
-          description: Unauthorized
+          description: Unauthorized (формат `ApiExceptionHandler`)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
 
   /songs:
     get:
       tags:
         - Songs
       summary: List all songs
-      description: Retrieve a list of all songs
+      description: |
+        Пагинированный список. Обязательные query-параметры совпадают с `PaginationRequest`.
+        В `data` приходит объект с полями `page`, `size`, `total`, `items` (`PaginationOutModel`).
       operationId: listSongs
       security:
         - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PaginationPage'
+        - $ref: '#/components/parameters/PaginationSize'
+        - $ref: '#/components/parameters/SongSortByQuery'
+        - $ref: '#/components/parameters/SortOrderQuery'
       responses:
         '200':
           description: Songs retrieved successfully
@@ -196,31 +196,35 @@ paths:
               example:
                 success: true
                 data:
-                  - id: 1
-                    name: "Bohemian Rhapsody"
-                    user_id: 1
-                    year: 1975
-                    created_at: "29/01/2026"
-                    updated_at: "29/01/2026"
-                  - id: 2
-                    name: "Stairway to Heaven"
-                    user_id: 1
-                    year: 1971
-                    created_at: "29/01/2026"
-                    updated_at: "29/01/2026"
+                  page: 1
+                  size: 10
+                  total: 2
+                  items:
+                    - id: 1
+                      name: "Bohemian Rhapsody"
+                      year: 1975
+                      created_by: 1
+                      created_at: "29/01/2026"
+                      updated_at: "29/01/2026"
                 message: "Songs retrieved successfully."
+        '422':
+          description: Validation error (missing or invalid query parameters)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
         '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
 
     post:
       tags:
         - Songs
       summary: Create a new song
-      description: Create a new song record
+      description: Create a new song record. The creator is the authenticated user (`created_by` is set server-side from the token).
       operationId: createSong
       security:
         - bearerAuth: []
@@ -232,16 +236,16 @@ paths:
               type: object
               required:
                 - name
-                - user_id
+                - singer_id
                 - year
               properties:
                 name:
                   type: string
                   description: Song name
                   example: "Bohemian Rhapsody"
-                user_id:
+                singer_id:
                   type: integer
-                  description: ID of the user who owns the song
+                  description: ID of the singer
                   example: 1
                 year:
                   type: integer
@@ -259,8 +263,9 @@ paths:
                 data:
                   id: 1
                   name: "Bohemian Rhapsody"
-                  user_id: 1
+                  singer_id: 1
                   year: 1975
+                  created_by: 1
                   created_at: "29/01/2026"
                   updated_at: "29/01/2026"
                 message: "Song created successfully."
@@ -269,25 +274,25 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
         '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
 
-  /songs/{id}:
+  /songs/{song}:
     get:
       tags:
         - Songs
       summary: Get a specific song
-      description: Retrieve a specific song by its ID
+      description: Retrieve a specific song by its ID (route parameter `{song}` — id песни)
       operationId: getSong
       security:
         - bearerAuth: []
       parameters:
-        - name: id
+        - name: song
           in: path
           required: true
           description: Song ID
@@ -306,8 +311,8 @@ paths:
                 data:
                   id: 1
                   name: "Bohemian Rhapsody"
-                  user_id: 1
                   year: 1975
+                  created_by: 1
                   created_at: "29/01/2026"
                   updated_at: "29/01/2026"
                 message: "Song retrieved successfully."
@@ -316,16 +321,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                success: false
-                message: "Song not found."
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
         '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
 
     put:
       tags:
@@ -336,7 +338,7 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - name: id
+        - name: song
           in: path
           required: true
           description: Song ID
@@ -351,16 +353,16 @@ paths:
               type: object
               required:
                 - name
-                - user_id
+                - singer_id
                 - year
               properties:
                 name:
                   type: string
                   description: Song name
                   example: "Bohemian Rhapsody"
-                user_id:
+                singer_id:
                   type: integer
-                  description: ID of the user who owns the song
+                  description: ID of the singer
                   example: 1
                 year:
                   type: integer
@@ -378,8 +380,9 @@ paths:
                 data:
                   id: 1
                   name: "Bohemian Rhapsody (Updated)"
-                  user_id: 1
+                  singer_id: 1
                   year: 1975
+                  created_by: 1
                   created_at: "29/01/2026"
                   updated_at: "29/01/2026"
                 message: "Song updated successfully."
@@ -388,24 +391,25 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
         '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
 
     patch:
       tags:
         - Songs
-      summary: Update a song (partial)
-      description: Partially update an existing song
+      summary: Update a song (PATCH)
+      description: |
+        В коде для `PUT` и `PATCH` используется один и тот же `SongUpdateRequest`: поля `name`, `singer_id`, `year` **обязательны** (полного частичного обновления нет).
       operationId: patchSong
       security:
         - bearerAuth: []
       parameters:
-        - name: id
+        - name: song
           in: path
           required: true
           description: Song ID
@@ -418,14 +422,18 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - name
+                - singer_id
+                - year
               properties:
                 name:
                   type: string
                   description: Song name
                   example: "Bohemian Rhapsody"
-                user_id:
+                singer_id:
                   type: integer
-                  description: ID of the user who owns the song
+                  description: ID of the singer
                   example: 1
                 year:
                   type: integer
@@ -443,13 +451,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
         '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
 
     delete:
       tags:
@@ -460,7 +468,7 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - name: id
+        - name: song
           in: path
           required: true
           description: Song ID
@@ -483,16 +491,339 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
+
+  /genres:
+    get:
+      tags:
+        - Genres
+      summary: List genres
+      description: Обязательные query-параметры — `GenreIndexRequest` (пагинация + сортировка).
+      operationId: listGenres
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PaginationPage'
+        - $ref: '#/components/parameters/PaginationSize'
+        - $ref: '#/components/parameters/GenreSortByQuery'
+        - $ref: '#/components/parameters/SortOrderQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '422':
+          description: Validation error (query parameters)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
+    post:
+      tags:
+        - Genres
+      summary: Create genre
+      operationId: createGenre
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, example: "Rock" }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
+
+  /genres/{genre}:
+    get:
+      tags:
+        - Genres
+      summary: Get genre
+      operationId: getGenre
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: genre
+          in: path
+          required: true
+          description: Genre ID
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized
+    put:
+      tags:
+        - Genres
+      summary: Update genre
+      operationId: updateGenre
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: genre
+          in: path
+          required: true
+          description: Genre ID
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+      responses:
+        '200':
+          description: OK
+        '422':
+          description: Validation error
+        '401':
+          description: Unauthorized
+    delete:
+      tags:
+        - Genres
+      summary: Delete genre
+      operationId: deleteGenre
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: genre
+          in: path
+          required: true
+          description: Genre ID
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: Unauthorized
+
+  /singers:
+    get:
+      tags:
+        - Singers
+      summary: List singers
+      description: Обязательные query-параметры — `SingerIndexRequest`.
+      operationId: listSingers
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PaginationPage'
+        - $ref: '#/components/parameters/PaginationSize'
+        - $ref: '#/components/parameters/SingerSortByQuery'
+        - $ref: '#/components/parameters/SortOrderQuery'
+      responses:
+        '200':
+          description: OK
+        '422':
+          description: Validation error (query parameters)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
+    post:
+      tags:
+        - Singers
+      summary: Create singer
+      operationId: createSinger
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [first_name]
+              properties:
+                first_name: { type: string }
+                last_name: { type: string, nullable: true }
+                age: { type: integer, nullable: true }
+      responses:
+        '200':
+          description: OK
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiValidationErrorResponse'
+
+  /singers/{singer}:
+    get:
+      tags:
+        - Singers
+      summary: Get singer
+      operationId: getSinger
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: singer
+          in: path
+          required: true
+          description: Singer ID
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized
+    put:
+      tags:
+        - Singers
+      summary: Update singer
+      operationId: updateSinger
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: singer
+          in: path
+          required: true
+          description: Singer ID
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [first_name]
+              properties:
+                first_name: { type: string }
+                last_name: { type: string, nullable: true }
+                age: { type: integer, nullable: true }
+      responses:
+        '200':
+          description: OK
+        '422':
+          description: Validation error
+        '401':
+          description: Unauthorized
+    delete:
+      tags:
+        - Singers
+      summary: Delete singer
+      operationId: deleteSinger
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: singer
+          in: path
+          required: true
+          description: Singer ID
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: Unauthorized
 
 components:
+  parameters:
+    PaginationPage:
+      name: page
+      in: query
+      required: true
+      description: Номер страницы (с 1)
+      schema:
+        type: integer
+        minimum: 1
+        example: 1
+    PaginationSize:
+      name: size
+      in: query
+      required: true
+      description: Размер страницы
+      schema:
+        type: integer
+        minimum: 1
+        example: 10
+    SortOrderQuery:
+      name: sortOrder
+      in: query
+      required: true
+      schema:
+        type: string
+        enum: [asc, desc]
+    SongSortByQuery:
+      name: sortBy
+      in: query
+      required: true
+      description: Колонка сортировки (`SongSortByEnum`)
+      schema:
+        type: string
+        enum: [id, name, desc, singer_id, year, created_at, updated_at]
+    GenreSortByQuery:
+      name: sortBy
+      in: query
+      required: true
+      description: Колонка сортировки (`GenreSortByEnum`)
+      schema:
+        type: string
+        enum: [id, name, created_by, created_at, updated_at]
+    SingerSortByQuery:
+      name: sortBy
+      in: query
+      required: true
+      description: Колонка сортировки (`SingerSortByEnum`)
+      schema:
+        type: string
+        enum: [id, first_name, last_name, age, created_by, created_at, updated_at]
+
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
       description: |
-        Use the token received from the `/register` or `/login` endpoint.
+        Use the token received from the `/custom-register` or `/custom-login` endpoint.
         Include it in the Authorization header as: `Bearer {token}`
 
   schemas:
@@ -529,6 +860,61 @@ components:
           description: Error details
           nullable: true
 
+    BaseControllerErrorResponse:
+      type: object
+      description: Ответ `BaseController::sendError` (по умолчанию HTTP 404 при ошибках валидации/логина в RegisterController)
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+        data:
+          oneOf:
+            - type: object
+            - type: array
+          nullable: true
+
+    ApiValidationErrorResponse:
+      type: object
+      description: Ответ глобального `ApiExceptionHandler` (например, 422 для FormRequest)
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 422
+              message:
+                type: string
+              source:
+                type: string
+                description: Имя поля или контекст
+
+    UserModelResponse:
+      type: object
+      description: Сериализация модели `User` без обёртки BaseController
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        email_verified_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
     Song:
       type: object
       properties:
@@ -540,14 +926,18 @@ components:
           type: string
           description: Song name
           example: "Bohemian Rhapsody"
-        user_id:
+        singer_id:
           type: integer
-          description: ID of the user who owns the song
+          description: ID of the singer
           example: 1
         year:
           type: integer
           description: Year the song was released
           example: 1975
+        created_by:
+          type: integer
+          description: ID of the user who created the record
+          example: 1
         created_at:
           type: string
           description: "Creation date (format: d/m/Y)"

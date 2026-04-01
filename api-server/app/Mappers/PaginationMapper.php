@@ -17,4 +17,16 @@ class PaginationMapper
         );
     }
 
+    /**
+     * @param  array{page: int|string, size: int|string, sortBy: string, sortOrder: string}  $data
+     */
+    public static function mapFromValidated(array $data): PaginationInModel
+    {
+        return new PaginationInModel(
+            (int) $data['page'],
+            (int) $data['size'],
+            (string) $data['sortBy'],
+            (string) $data['sortOrder'],
+        );
+    }
 }
