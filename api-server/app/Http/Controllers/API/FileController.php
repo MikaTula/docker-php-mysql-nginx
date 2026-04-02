@@ -12,10 +12,13 @@ use App\Models\Song;
 use App\Services\FileServiceInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 
 class FileController extends BaseController
 {
-    public function __construct(private readonly FileServiceInterface $fileService) {}
+    public function __construct(private readonly FileServiceInterface $fileService)
+    {
+    }
 
     public function index(FileIndexRequest $request): JsonResponse
     {
@@ -53,6 +56,12 @@ class FileController extends BaseController
         return $this->sendResponse(FileMapper::mapFromDb($file), 'File retrieved successfully.');
     }
 
+    public function download(int $id)
+    {
+        $file = $this->fileService->findOrFail($id);
+        return Storage::download($file->path);
+    }
+
     public function update(FileUpdateRequest $request, File $file): JsonResponse
     {
         $validated = $request->validated();
@@ -62,14 +71,14 @@ class FileController extends BaseController
             Gate::authorize('update', $song);
         }
 
-        $updated = $this->fileService->update((int) $file->id, $validated);
+        $updated = $this->fileService->update((int)$file->id, $validated);
 
         return $this->sendResponse(FileMapper::mapFromDb($updated), 'File updated successfully.');
     }
 
     public function destroy(File $file): JsonResponse
     {
-        $this->fileService->delete((int) $file->id);
+        $this->fileService->delete((int)$file->id);
 
         return $this->sendResponse([], 'File deleted successfully.');
     }
