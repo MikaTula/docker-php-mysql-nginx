@@ -1,0 +1,11 @@
+.song {
+  display: grid;
+  grid-template-columns: 30px 1fr 200px;
+  &__id {
+
+  }
+  &__name {}
+  &__controls {
+    display: flex;
+  }
+}

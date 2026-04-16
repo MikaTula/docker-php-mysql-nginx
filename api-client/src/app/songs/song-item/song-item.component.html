@@ -1,0 +1,12 @@
+<div class="song">
+  <div class="song__id">{{ song().id }}</div>
+  <div class="song__name"> {{ song().name }}</div>
+  <div class="song__controls">
+    <button matIconButton aria-label="Edit" (click)="openEditSong(song().id)">
+      <mat-icon>edit</mat-icon>
+    </button>
+    <button matIconButton aria-label="Delete">
+      <mat-icon>delete</mat-icon>
+    </button>
+  </div>
+</div>

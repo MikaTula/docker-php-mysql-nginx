@@ -1,0 +1,18 @@
+<div class="wrap">
+  <div class="auth">
+    @if (authService.isAuth()) {
+      <div class="user">
+        {{ authService.name() }}
+      </div>
+      <div class="buttons">
+        <button matButton (click)="authService.logout()">
+          <mat-icon>logout</mat-icon>
+        </button>
+      </div>
+    } @else {
+      <div class="buttons">
+        <button matButton (click)="toLogin()">Login</button>
+      </div>
+    }
+  </div>
+</div>

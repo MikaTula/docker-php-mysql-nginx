@@ -1,0 +1,9 @@
+<mat-form-field>
+  <mat-label>Singer</mat-label>
+  <mat-select [formControl]="control">
+    @for (singer of singerList(); track singer.id) {
+      <mat-option [value]="singer.id">{{ singer.firstName }} {{ singer.lastName }}</mat-option>
+    }
+  </mat-select>
+</mat-form-field>
+

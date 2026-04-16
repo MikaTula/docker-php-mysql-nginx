@@ -18,6 +18,8 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     })->name('user');
 
+    Route::get('custom-logout', [RegisterController::class, 'logout'])->name('custom-logout');
+
     Route::apiResource('songs', SongController::class)->only(['index', 'store']);
     Route::get('songs/{song}', [SongController::class, 'show'])
         ->middleware('can:view,song')

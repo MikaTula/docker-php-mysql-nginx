@@ -28,7 +28,6 @@ class RegisterController extends BaseController
 
     public function register(Request $request): JsonResponse
     {
-
         $validator = Validator::make($request->all(), [
             'name' => 'required',
             'email' => 'required|email',
@@ -47,5 +46,12 @@ class RegisterController extends BaseController
         $success['name'] = $user->name;
 
         return $this->sendResponse($success, 'User register successfully.');
+    }
+
+    public function logout(Request $request): JsonResponse
+    {
+        $request->user()->tokens()->delete();
+
+        return $this->sendResponse(0, 'User register successfully.');
     }
 }

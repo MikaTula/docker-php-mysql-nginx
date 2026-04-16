@@ -1,0 +1,24 @@
+<mat-card class="card" appearance="outlined">
+  <mat-card-header class="card__header">
+    <mat-card-title>Login</mat-card-title>
+  </mat-card-header>
+  <mat-card-content class="card__content" [formGroup]="loginForm">
+
+    <mat-form-field>
+      <mat-label>Email</mat-label>
+      <input matInput type="text" formControlName="login">
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Password</mat-label>
+      <input matInput type="password" formControlName="password">
+    </mat-form-field>
+
+  </mat-card-content>
+  <mat-card-footer class="card__footer">
+    <button matButton [disabled]="!(canLogin | async)" (click)="tryLogin()">Login</button>
+  </mat-card-footer>
+</mat-card>
+
+
+

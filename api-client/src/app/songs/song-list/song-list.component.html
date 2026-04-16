@@ -1,0 +1,11 @@
+<h1>Songs list</h1>
+<div class="wrap">
+  @for (song of list(); track song.id) {
+    <app-song-item [song]="song"></app-song-item>
+  }
+</div>
+
+<button matMiniFab aria-label="Create" (click)="openCreateSong()" class="create-button">
+  <mat-icon>create</mat-icon>
+</button>
+

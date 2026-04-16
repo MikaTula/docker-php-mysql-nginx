@@ -1,0 +1,26 @@
+:host {
+  display: grid;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+
+  .card {
+    display: grid;
+    grid-auto-flow: row;
+
+    &__header {
+      display: flex;
+      justify-content: center;
+      padding-bottom: 12px;
+    }
+
+    &__content {
+      display: grid;
+      grid-auto-flow: row;
+    }
+    &__footer {
+      justify-self: center;
+      padding: 0 12px 12px;
+    }
+  }
+}
