@@ -52,6 +52,6 @@ class RegisterController extends BaseController
     {
         $request->user()->tokens()->delete();
 
-        return $this->sendResponse(0, 'User register successfully.');
+        return $this->sendResponse(0, 'User logout successfully.');
     }
 }

@@ -1,11 +1,84 @@
 .song {
   display: grid;
-  grid-template-columns: 30px 1fr 200px;
-  &__id {
+  gap: 8px;
+  align-items: center;
 
+  &:has(.song__media) {
+    grid-template-columns: 30px 1fr minmax(220px, 300px) min-content ;
+    grid-template-areas: "id name audio controls";
   }
-  &__name {}
+
+  &:not(:has(.song__media)) {
+    grid-template-columns: 30px 1fr min-content;
+    grid-template-areas: "id name controls";
+  }
+
+  @media (max-width: 768px) {
+    &:has(.song__media) {
+      grid-template-columns: 36px 1fr min-content;
+      column-gap: 8px;
+      row-gap: 8px;
+      grid-template-areas:
+        "id name controls"
+        "audio audio audio";
+    }
+
+    &:not(:has(.song__media)) {
+      grid-template-columns: 36px 1fr min-content;
+      grid-template-areas: "id name controls";
+    }
+
+    .song__audio,
+    .song__media {
+      width: 100%;
+      max-width: 100%;
+    }
+  }
+
+  &__id {
+    grid-area: id;
+  }
+
+  &__name {
+    grid-area: name;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   &__controls {
+    grid-area: controls;
     display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  &__media {
+    grid-area: audio;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 40px;
+  }
+
+  &__media-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 48px;
+  }
+
+  &__audio {
+    min-width: 0;
+    max-width: 100%;
+    vertical-align: middle;
+
+    &:hover {
+      z-index: 10;
+    }
   }
 }

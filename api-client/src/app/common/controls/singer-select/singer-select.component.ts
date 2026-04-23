@@ -1,12 +1,4 @@
-import {
-
-  Component,
-  inject,
-  OnInit,
-  Optional,
-  Self,
-  signal,
-} from '@angular/core';
+import { Component, inject, OnInit, Optional, Self, signal } from '@angular/core';
 import { ControlValueAccessor, FormControl, ReactiveFormsModule, NgControl } from '@angular/forms';
 import { SingerApiService } from '../../../service/singer-api.service';
 import { ISinger } from '../../../inteface/singer.interface';
@@ -51,7 +43,7 @@ export class SingerSelectComponent extends BaseLoading implements ControlValueAc
     });
 
     this.control.valueChanges.subscribe((value) => {
-      console.log(value);
+      this.control.setValue(value, { emitEvent: false });
     });
   }
 

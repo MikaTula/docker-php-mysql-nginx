@@ -1,18 +1,43 @@
-<div class="wrap">
-  <div class="auth">
+<mat-toolbar class="menu" role="navigation">
+  <div class="menu__left">
+    <a routerLink="/" class="menu__brand" [class.menu__brand--active]="isAppRouteActive()">
+      api-client
+    </a>
+
+    <nav class="menu__nav" aria-label="Main">
+      <a
+        matButton
+        routerLink="/songs"
+        class="menu__link"
+        [class.menu__link--active]="isAppRouteActive()"
+      >
+        App
+      </a>
+    </nav>
+
+    <nav class="menu__nav" aria-label="Test">
+      <a
+        matButton
+        routerLink="/test"
+        class="menu__link"
+      >
+        Page 2
+      </a>
+    </nav>
+  </div>
+
+  <span class="menu__spacer"></span>
+
+  <div class="menu__right">
     @if (authService.isAuth()) {
-      <div class="user">
-        {{ authService.name() }}
-      </div>
-      <div class="buttons">
-        <button matButton (click)="authService.logout()">
-          <mat-icon>logout</mat-icon>
-        </button>
-      </div>
+      <span class="menu__user" title="Signed in">{{ authService.name() }}</span>
+      <button matButton type="button" (click)="authService.logout()" aria-label="Log out">
+        <mat-icon>logout</mat-icon>
+        <span class="menu__logout-label">Log out</span>
+      </button>
     } @else {
-      <div class="buttons">
-        <button matButton (click)="toLogin()">Login</button>
-      </div>
+      <a matButton routerLink="/auth/sign-in" routerLinkActive="menu__link--active">Sign in</a>
+      <a matButton routerLink="/auth/sign-up" routerLinkActive="menu__link--active">Sign up</a>
     }
   </div>
-</div>
+</mat-toolbar>

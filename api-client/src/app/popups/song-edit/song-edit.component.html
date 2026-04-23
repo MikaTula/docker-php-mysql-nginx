@@ -10,12 +10,14 @@
         <input matInput type="text" formControlName="name">
       </mat-form-field>
 
-<!--      <mat-form-field>-->
-<!--        <mat-label>Singer direct value</mat-label>-->
-<!--        <input matInput type="number" formControlName="singer_id">-->
-<!--      </mat-form-field>-->
+      <mat-form-field>
+        <mat-label>Singer direct value</mat-label>
+        <input matInput type="number" formControlName="singer_id">
+      </mat-form-field>
 
       <app-singer-select formControlName="singer_id"></app-singer-select>
+
+      <app-file-upload formControlName="file_id"></app-file-upload>
 
       <mat-form-field>
         <mat-label>Year</mat-label>

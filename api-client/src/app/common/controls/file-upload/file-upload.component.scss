@@ -1,0 +1,36 @@
+:host {
+  display: grid;
+  gap: 8px;
+  padding: 0 0 20px
+}
+
+.file-upload-field {
+  width: 100%;
+  height: 50px;
+  border: solid 1px #6c6c6c;
+  background-color: #eee;
+  border-radius: 4px;
+  display: grid;
+  place-content: center;
+}
+
+.file-upload-field--dragover {
+  opacity: 0.8;
+}
+
+.file-upload-loading {
+  display: flex;
+  justify-content: center;
+}
+
+.file-upload-error {
+  color: red;
+}
+
+.file-name {
+  display: flex;
+  gap: 8px;
+  &__reset {
+    cursor: pointer;
+  }
+}

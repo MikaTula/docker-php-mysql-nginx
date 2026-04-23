@@ -1,0 +1,38 @@
+<div
+  class="file-upload-field"
+  [class.file-upload-field--dragover]="dragOver()"
+  (drop)="onDrop($event)"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (click)="openFileDialog(fileInput)"
+>
+
+  @if (fileName()) {
+    <div class="file-name">
+      {{ fileName() }}
+      <mat-icon class="file-name__reset" (click)="clearFile($event, fileInput)">cancel</mat-icon>
+    </div>
+
+  } @else {
+    @if (loading()) {
+      <div class="file-upload-loading">
+        <mat-spinner diameter="20"></mat-spinner>
+      </div>
+    } @else {
+      <mat-icon>upload_file</mat-icon>
+    }
+  }
+</div>
+
+
+<input
+  #fileInput
+  type="file"
+  hidden
+  (change)="onFileSelected($event)"
+  accept=".mp3"
+>
+
+@if (uploadError()) {
+  <div class="file-upload-error">{{ uploadError() }}</div>
+}

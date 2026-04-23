@@ -14,14 +14,7 @@ class SongMapper
     {
         $res = [];
         foreach ($songs as $song) {
-            $res[] = new SongModel(
-                $song->id,
-                $song->name,
-                SingerMapper::mapFromDbToIdName($song->singer),
-                $song->year,
-                $song->created_at,
-                $song->updated_at
-            );
+            $res[] = SongMapper::mapFromDb($song);
         }
 
         return $res;
@@ -35,7 +28,8 @@ class SongMapper
             SingerMapper::mapFromDbToIdName($song->singer),
             $song->year,
             $song->created_at,
-            $song->updated_at
+            $song->updated_at,
+            $song->file ? FileMapper::mapFromDb($song->file) : null
         );
     }
 }

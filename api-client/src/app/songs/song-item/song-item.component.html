@@ -1,6 +1,17 @@
 <div class="song">
   <div class="song__id">{{ song().id }}</div>
   <div class="song__name"> {{ song().name }}</div>
+  @if (song().file?.id) {
+    <div class="song__media">
+      @if (audioSrc()) {
+        <audio class="song__audio" controls [src]="audioSrc()"></audio>
+      } @else {
+        <div class="song__media-loading" aria-busy="true" aria-label="Loading audio">
+          <mat-spinner diameter="32"></mat-spinner>
+        </div>
+      }
+    </div>
+  }
   <div class="song__controls">
     <button matIconButton aria-label="Edit" (click)="openEditSong(song().id)">
       <mat-icon>edit</mat-icon>

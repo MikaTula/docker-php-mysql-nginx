@@ -34,6 +34,7 @@ class SongController extends BaseController
     public function store(SongStoreRequest $request): JsonResponse
     {
         $song = $this->songService->create($request->validated(), $request->user()->id);
+        $song->loadMissing('singer', 'file');
 
         return $this->sendResponse(SongMapper::mapFromDb($song), 'Song created successfully.');
     }
@@ -41,8 +42,7 @@ class SongController extends BaseController
     // Display the specified resource.
     public function show(Song $song): JsonResponse
     {
-        $song->loadMissing('singer');
-
+        $song->loadMissing('singer', 'file');
         return $this->sendResponse(SongMapper::mapFromDb($song), 'Song retrieved successfully.');
     }
 
@@ -50,6 +50,7 @@ class SongController extends BaseController
     public function update(SongUpdateRequest $request, Song $song): JsonResponse
     {
         $updated = $this->songService->update($song->id, $request->validated());
+        $updated->loadMissing('singer', 'file');
 
         return $this->sendResponse(SongMapper::mapFromDb($updated), 'Song updated successfully.');
     }

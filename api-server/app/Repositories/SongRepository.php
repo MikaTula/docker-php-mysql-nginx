@@ -18,7 +18,7 @@ class SongRepository implements SongRepositoryInterface
         SortOrderEnum $sortOrder,
         ?int $userId = null
     ): iterable {
-        $query = Song::query()->with('singer');
+        $query = Song::query()->with(['singer', 'file']);
         if ($userId !== null) {
             $query->where('created_by', $userId);
         }

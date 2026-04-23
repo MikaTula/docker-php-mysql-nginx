@@ -1,6 +1,7 @@
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { AuthApiService } from './auth-api.service';
 import { ISignInData } from '../inteface/sign-in-data.interface';
+import { ISignUpData } from '../inteface/sign-up-data.interface';
 import { Router } from '@angular/router';
 
 @Injectable({
@@ -29,7 +30,15 @@ export class AuthService {
     this.authApiService.login(loginData).subscribe((loginResult) => {
       this.token.set(loginResult.token);
       this.name.set(loginResult.name);
-      this.router.navigate(['private', 'songs']).then();
+      this.router.navigate(['/songs']).then();
+    });
+  }
+
+  public register(signUpData: ISignUpData) {
+    this.authApiService.register(signUpData).subscribe((loginResult) => {
+      this.token.set(loginResult.token);
+      this.name.set(loginResult.name);
+      this.router.navigate(['/songs']).then();
     });
   }
 
@@ -40,7 +49,7 @@ export class AuthService {
   public logoutInner() {
     this.token.set(null);
     this.name.set(null);
-    this.router.navigate(['auth', 'login']).then();
+    this.router.navigate(['auth', 'sign-in']).then();
   }
 
   public getAuthData(): string {

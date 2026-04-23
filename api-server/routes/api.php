@@ -54,7 +54,9 @@ Route::middleware('auth:sanctum')->group(function () {
         ->name('singers.destroy');
 
     Route::apiResource('files', FileController::class)->only(['index', 'store']);
-    Route::get('files/download/{id}', [FileController::class, 'download'])
+    Route::get('files/{file}/download', [FileController::class, 'download'])
+        ->middleware('can:view,file');
+    Route::get('files/{file}/stream', [FileController::class, 'stream'])
         ->middleware('can:view,file');
     Route::get('files/{file}', [FileController::class, 'show'])
         ->middleware('can:view,file')
@@ -65,5 +67,4 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('files/{file}', [FileController::class, 'destroy'])
         ->middleware('can:delete,file')
         ->name('files.destroy');
-
 });

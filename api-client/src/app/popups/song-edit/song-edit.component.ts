@@ -14,12 +14,11 @@ import { MatFormField, MatInput, MatLabel } from '@angular/material/input';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SongsApiService } from '../../service/songs-api.service';
 import { BaseLoading } from '../../common/base-loading/base-loading.class';
-import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { SpinnerComponent } from '../../common/spinner/spinner.component';
 import { map } from 'rxjs';
-import { ISong } from '../../inteface/song.interface';
+import { ISongCreate, ISongEdit } from '../../inteface/song.interface';
 import { SingerSelectComponent } from '../../common/controls/singer-select/singer-select.component';
-import { parseNumericFormInput } from '../../utils/form.utils';
+import { FileUploadComponent } from '../../common/controls/file-upload/file-upload.component';
 
 @Component({
   selector: 'app-song-edit',
@@ -37,6 +36,7 @@ import { parseNumericFormInput } from '../../utils/form.utils';
     SpinnerComponent,
     AsyncPipe,
     SingerSelectComponent,
+    FileUploadComponent,
   ],
   templateUrl: './song-edit.component.html',
   styleUrl: './song-edit.component.scss',
@@ -60,6 +60,10 @@ export class SongEditComponent extends BaseLoading implements OnInit {
       validators: [Validators.required, Validators.min(1900), Validators.max(2100)],
       nonNullable: false,
     }),
+    file_id: new FormControl<number | null>(null, {
+      validators: [Validators.min(1)],
+      nonNullable: false,
+    }),
   });
 
   protected canSave = this.songEditForm.statusChanges.pipe(map((status) => status == 'VALID'));
@@ -73,6 +77,7 @@ export class SongEditComponent extends BaseLoading implements OnInit {
           name: song?.name,
           singer_id: song?.singer.id,
           year: song?.year,
+          file_id: song?.file?.id,
         });
         this.setLoading(false);
       });
@@ -85,12 +90,12 @@ export class SongEditComponent extends BaseLoading implements OnInit {
 
       const id = this?.data?.id;
       if (id) {
-        this.songApiService.update(id, this.songEditForm.value as ISong).subscribe((song) => {
+        this.songApiService.update(id, this.songEditForm.value as ISongEdit).subscribe((song) => {
           this.setLoading(false);
           this.dialogRef.close(true);
         });
       } else {
-        this.songApiService.create(this.songEditForm.value as ISong).subscribe((song) => {
+        this.songApiService.create(this.songEditForm.value as ISongCreate).subscribe((song) => {
           this.setLoading(false);
           this.dialogRef.close(true);
         });
@@ -103,4 +108,5 @@ export interface SongEditForm {
   name: FormControl<string>;
   singer_id: FormControl<number | null>;
   year: FormControl<number | null>;
+  file_id: FormControl<number | null>;
 }

@@ -1,4 +1,9 @@
-:host{
+:host {
   display: grid;
-  grid-template-rows: auto 0 1fr;
+  grid-template-rows: auto 1fr;
+  min-height: 100%;
+
+  .base {
+    padding: 20px;
+  }
 }

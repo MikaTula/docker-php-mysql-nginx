@@ -5,6 +5,17 @@
   }
 </div>
 
+<mat-paginator
+  (page)="handlePageEvent($event)"
+  [length]="total()"
+  [pageSize]="paginationData().size"
+  [showFirstLastButtons]="true"
+  [pageIndex]="paginationData().page - 1"
+  aria-label="Select page"
+  [pageSizeOptions]="[5,10,15]"
+>
+</mat-paginator>
+
 <button matMiniFab aria-label="Create" (click)="openCreateSong()" class="create-button">
   <mat-icon>create</mat-icon>
 </button>

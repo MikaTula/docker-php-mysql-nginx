@@ -16,7 +16,8 @@
 
   </mat-card-content>
   <mat-card-footer class="card__footer">
-    <button matButton [disabled]="!(canLogin | async)" (click)="tryLogin()">Login</button>
+    <button matButton [disabled]="!(canLogin | async)" (click)="tryLogin()">Sign In</button>
+    <button matButton type="button" routerLink="/auth/sign-up">Sing up</button>
   </mat-card-footer>
 </mat-card>
 

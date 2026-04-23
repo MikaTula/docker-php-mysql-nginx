@@ -16,6 +16,7 @@ class SongStoreRequest extends FormRequest
         return [
             'name' => ['required', 'string'],
             'singer_id' => ['required', 'integer', 'exists:singers,id'],
+            'file_id' => ['integer', 'nullable'],
             'year' => ['required', 'integer'],
         ];
     }

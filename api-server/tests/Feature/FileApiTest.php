@@ -144,6 +144,48 @@ class FileApiTest extends TestCase
         Storage::disk('local')->assertMissing($file->path);
     }
 
+    public function test_guest_cannot_stream_file(): void
+    {
+        Storage::fake('local');
+
+        $user = User::factory()->create(['role' => 'user']);
+        $path = UploadedFile::fake()->create('tune.mp3', 20)->store('uploads/'.$user->id, 'local');
+        $file = File::create([
+            'user_id' => $user->id,
+            'description' => null,
+            'disk' => 'local',
+            'path' => $path,
+            'original_name' => 'tune.mp3',
+            'mime_type' => 'audio/mpeg',
+            'size' => 20,
+        ]);
+
+        $this->get('/api/files/'.$file->id.'/stream')->assertUnauthorized();
+    }
+
+    public function test_authenticated_user_can_stream_file(): void
+    {
+        Storage::fake('local');
+
+        $user = User::factory()->create(['role' => 'user']);
+        $path = UploadedFile::fake()->create('tune.mp3', 20)->store('uploads/'.$user->id, 'local');
+        $file = File::create([
+            'user_id' => $user->id,
+            'description' => null,
+            'disk' => 'local',
+            'path' => $path,
+            'original_name' => 'tune.mp3',
+            'mime_type' => 'audio/mpeg',
+            'size' => 20,
+        ]);
+
+        $response = $this->actingAs($user, 'sanctum')->get('/api/files/'.$file->id.'/stream');
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'audio/mpeg');
+        $this->assertStringContainsString('inline', (string) $response->headers->get('Content-Disposition'));
+    }
+
     public function test_uploading_file_to_song_replaces_previous_file_for_that_song(): void
     {
         Storage::fake('local');

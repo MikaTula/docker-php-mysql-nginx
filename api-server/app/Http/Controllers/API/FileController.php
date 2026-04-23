@@ -16,9 +16,7 @@ use Illuminate\Support\Facades\Storage;
 
 class FileController extends BaseController
 {
-    public function __construct(private readonly FileServiceInterface $fileService)
-    {
-    }
+    public function __construct(private readonly FileServiceInterface $fileService) {}
 
     public function index(FileIndexRequest $request): JsonResponse
     {
@@ -56,10 +54,32 @@ class FileController extends BaseController
         return $this->sendResponse(FileMapper::mapFromDb($file), 'File retrieved successfully.');
     }
 
-    public function download(int $id)
+    public function download(File $file)
     {
-        $file = $this->fileService->findOrFail($id);
-        return Storage::download($file->path);
+        return Storage::disk($file->disk)->download($file->path, $file->original_name);
+    }
+
+    /**
+     * Отдача файла для прослушивания в браузере (Authorization: Bearer через Sanctum).
+     * Inline + корректный MIME; путь через диск из модели.
+     */
+    public function stream(File $file)
+    {
+        $absolutePath = Storage::disk($file->disk)->path($file->path);
+
+        $mimeType = $file->mime_type ?: (mime_content_type($absolutePath) ?: 'application/octet-stream');
+
+        return response()->file($absolutePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="'.$this->asciiFallbackFilename($file->original_name).'"',
+        ]);
+    }
+
+    private function asciiFallbackFilename(string $name): string
+    {
+        $base = basename(str_replace(["\r", "\n"], '', $name));
+
+        return $base === '' ? 'file' : $base;
     }
 
     public function update(FileUpdateRequest $request, File $file): JsonResponse
@@ -71,14 +91,14 @@ class FileController extends BaseController
             Gate::authorize('update', $song);
         }
 
-        $updated = $this->fileService->update((int)$file->id, $validated);
+        $updated = $this->fileService->update((int) $file->id, $validated);
 
         return $this->sendResponse(FileMapper::mapFromDb($updated), 'File updated successfully.');
     }
 
     public function destroy(File $file): JsonResponse
     {
-        $this->fileService->delete((int)$file->id);
+        $this->fileService->delete((int) $file->id);
 
         return $this->sendResponse([], 'File deleted successfully.');
     }

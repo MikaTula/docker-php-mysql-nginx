@@ -2,7 +2,7 @@
 
 namespace App\Domain\Songs;
 
-use App\Models\Singer;
+use App\Domain\Files\FileModel;
 use Carbon\CarbonImmutable;
 
 class SongModel
@@ -13,6 +13,7 @@ class SongModel
         public IdNameModel $singer,
         public int $year,
         public CarbonImmutable $createdAt,
-        public ?CarbonImmutable $updatedAt
+        public ?CarbonImmutable $updatedAt,
+        public ?FileModel $file
     ) {}
 }

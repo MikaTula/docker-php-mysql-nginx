@@ -20,6 +20,7 @@ import { AuthService } from '../../service/auth.service';
 import { map } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AsyncPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -36,6 +37,7 @@ import { AsyncPipe } from '@angular/common';
     MatCardFooter,
     ReactiveFormsModule,
     AsyncPipe,
+    RouterLink,
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
