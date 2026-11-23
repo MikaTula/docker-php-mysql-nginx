@@ -1,0 +1,26 @@
+{
+	"name": "mk/project",
+	"type": "project",
+	"description": "mk",
+	"require": {
+		"php": "^8.5",
+		"ext-fileinfo": "*",
+		"ext-json": "*",
+		"ext-mysqli": "*",
+		"ext-zip": "*",
+		"chrome-php/chrome": "^1.16",
+		"guzzlehttp/guzzle": "^7.10",
+      "ext-pdo": "*"
+    },
+	"config": {
+		"optimize-autoloader": true,
+		"preferred-install": "dist",
+		"sort-packages": true,
+		"allow-plugins": {
+			"composer/package-versions-deprecated": true,
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	},
+	"minimum-stability": "stable",
+	"prefer-stable": true
+}

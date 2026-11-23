@@ -1,0 +1,227 @@
+openapi: 3.0.3
+info:
+  title: Пользователи
+  version: 0.1.0
+  description: |
+    Запросы уходят в `api-server/users-api-example.php` на этом же хосте.
+    Список хранится в PHP-сессии. При первом запросе, если сессии ещё нет, скрипт записывает пять пользователей.
+servers:
+  - url: /
+paths:
+  /api/users/all:
+    get:
+      operationId: getUsers
+      summary: Все пользователи
+      responses:
+        '200':
+          description: Пользователи из сессии
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+              example:
+                - id: 1
+                  name: Анна Иванова
+                  email: anna@example.com
+                - id: 2
+                  name: Борис Петров
+                  email: boris@example.com
+                - id: 3
+                  name: Вера Смирнова
+                  email: vera@example.com
+                - id: 4
+                  name: Глеб Орлов
+                  email: gleb@example.com
+                - id: 5
+                  name: Дина Козлова
+                  email: dina@example.com
+  /api/users:
+    get:
+      operationId: getUser
+      summary: Пользователь по id
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: Пользователь
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              example:
+                id: 1
+                name: Анна Иванова
+                email: anna@example.com
+        '400':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldErrors'
+              examples:
+                required:
+                  summary: Нет id
+                  value:
+                    id: Field is required
+                notInt:
+                  summary: id не целое
+                  value:
+                    id: Field must be int
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      operationId: postUser
+      summary: Новый пользователь
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [name, email]
+              properties:
+                name:
+                  type: string
+                  example: Егор Новиков
+                email:
+                  type: string
+                  example: egor@example.com
+      responses:
+        '201':
+          description: Созданный пользователь. id назначает сервер
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              example:
+                id: 6
+                name: Егор Новиков
+                email: egor@example.com
+        '400':
+          description: Ошибка валидации. Возвращается первое несработавшее правило
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldErrors'
+              examples:
+                name:
+                  summary: Нет name
+                  value:
+                    name: Field is required
+                email:
+                  summary: Нет email
+                  value:
+                    email: Field is required
+    put:
+      operationId: putUser
+      summary: Обновление пользователя
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  example: Анна Соколова
+                email:
+                  type: string
+                  example: anna.sokolova@example.com
+      responses:
+        '200':
+          description: Обновлённый пользователь. Пустые поля не затирают записанные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              example:
+                id: 1
+                name: Анна Соколова
+                email: anna@example.com
+        '400':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldErrors'
+              example:
+                id: Field is required
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: deleteUser
+      summary: Удаление пользователя
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id:
+                  type: integer
+                  example: 5
+      responses:
+        '204':
+          description: Пользователь удалён
+        '400':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldErrors'
+              example:
+                id: Field is required
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  parameters:
+    UserId:
+      name: id
+      in: query
+      required: true
+      schema:
+        type: integer
+        example: 1
+  responses:
+    NotFound:
+      description: Пользователь не найден
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
+          example:
+            message: No such user
+  schemas:
+    User:
+      type: object
+      required: [id, name, email]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+      example:
+        id: 1
+        name: Анна Иванова
+        email: anna@example.com
+    FieldErrors:
+      type: object
+      additionalProperties:
+        type: string
+    ErrorMessage:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string

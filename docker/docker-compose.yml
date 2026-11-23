@@ -1,0 +1,117 @@
+name: docker-php-mysql-nginx
+
+services:
+  cm-gateway:
+    build: ./images/nginx
+    restart: unless-stopped
+    ports:
+        - "80:80"
+    volumes:
+      - ./images/nginx/hosts:/etc/nginx/conf.d
+      - ../logs/nginx:/var/log/nginx
+      - ../api-server:/var/www/api-server
+      - ../api-client:/var/www/api-client
+      - ../api-docs/dist:/var/www/api-docs
+      - ../examples:/var/www/examples
+    networks:
+      - cm-network            
+
+  cm-api-server:
+    build:
+      context: ./images/api-server
+    restart: unless-stopped
+    working_dir: /var/www/api-server
+    depends_on:
+      cm-database:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ../api-server:/var/www/api-server
+      - ../examples:/var/www/examples
+      - ../logs/api-server:/var/log/php
+    networks:
+      - cm-network      
+
+  cm-database:
+    image: mysql:9.7.4
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "--silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=true
+      # - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_DATABASE=cm_api_server
+      - MYSQL_USER=cm_db_user
+      - MYSQL_PASSWORD=secret
+    volumes:
+      - db-mysql:/var/lib/mysql
+    networks:
+      - cm-network      
+      
+  cm-redis:
+    image: redis:8.10.3-alpine
+    restart: unless-stopped
+    volumes:
+      - redis:/data
+    networks:
+      - cm-network      
+
+  cm-redis-commander:
+    image: ghcr.io/joeferner/redis-commander:0.9.1
+    restart: unless-stopped
+    environment:
+      - REDIS_HOSTS=cm-redis
+    ports:
+      - "127.0.0.1:8082:8081"
+    depends_on:
+      - cm-redis
+    networks:
+      - cm-network  
+      
+  cm-mailpit:
+    image: axllent/mailpit:v1.34.0
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+    networks:
+      - cm-network  
+  
+  cm-clear-log:
+    image: alpine:3.22
+    restart: "no"
+    command: ["sh", "-c", "rm -f /var/log/php/error.log /var/log/nginx/error.log /var/log/nginx/access.log"]
+    volumes:
+      - ../logs/api-server:/var/log/php
+      - ../logs/nginx:/var/log/nginx
+      
+  cm-phpmyadmin:
+    image: phpmyadmin/phpmyadmin:5.2.3
+    restart: unless-stopped
+    depends_on:
+      cm-database:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8081:80"
+    environment:
+      - PMA_ARBITRARY=1      
+      - PMA_HOST=cm-database
+      - PMA_USER=root
+      - UPLOAD_LIMIT=128M
+    networks:
+      - cm-network       
+
+volumes:
+  db-mysql:
+  redis:
+
+networks:
+  cm-network:
+    driver: bridge
